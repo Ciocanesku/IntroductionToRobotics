@@ -1,21 +1,30 @@
-[HW2 - RGB led with 3 potentiometers.txt](https://github.com/Ciocanesku/IntroductionToRobotics/files/13052883/HW2.-.RGB.led.with.3.potentiometers.txt)# IntroductionToRobotics
+# IntroductionToRobotics
 This is my personal "Robotics Portfolio" repository, a collection of my projects, code, and research related to the field of robotics. Explore my work and see the progress I've made in this fascinating area of technology.
 
 # Introduction to Robotics (2023 - 2024)
 
 Repository for Robotics Lab Assignments - Completed during the 3rd Year at the University of Bucharest's Faculty of Mathematics and Computer Science. Each assignment includes task descriptions, implementation details, as well as relevant code and image files.
-  
-## Homework 1
-**Requirements**: 
-      Use a separate potentiometer for controlling each color of the RGB LED:Red,Green, and Blue.  This control must leverage digital electronics.  Specifically, you  need  to  read  the  potentiometer’s  value  with  Arduino  and  then  write a mapped value to the LED pins.  
 
-**Photo of the circuit**
+
+# Homeworks
+<details>
+<summary><span style="font-size: 50px; font-weight: bold;">Homework 1</span></summary>
+
+## Requirements
+
+Use a separate potentiometer for controlling each color of the RGB LED: Red, Green, and Blue. This control must leverage digital electronics. Specifically, you need to read the potentiometer's value with Arduino and then write a mapped value to the LED pins.
+
+## Photo of the circuit
+
 ![RGB LED](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/e1b534ac-20ef-4651-91b1-f876045eacea)
 
-**Link for video:** https://www.youtube.com/shorts/guyWlb159wo
+## Link for video
 
-**Code:** 
-```
+[Watch the video](https://www.youtube.com/shorts/guyWlb159wo)
+
+## Code
+
+```arduino
 // declarare pini led
 const int ledPinGreen = 8;
 const int ledPinBlue = 9;
