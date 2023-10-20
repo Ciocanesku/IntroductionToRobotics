@@ -1,0 +1,42 @@
+// declarare pini led
+const int ledPinGreen = 8;
+const int ledPinBlue = 9;
+const int ledPinRed = 10;
+
+//declarare pini potentiometre
+const int potPinRed = A2;
+const int potPinBlue = A1;
+const int potPinGreen = A0;
+
+//declarare valori led-uri
+int redPinVal = 0;
+int bluePinVal = 0;
+int greenPinVal = 0;
+
+//declarare valori potentiometre
+int redPotVal = 0;
+int bluePotVal = 0;
+int greenPotVal = 0;
+
+void setup() {
+
+  Serial.begin(9600);
+}
+
+void loop() {
+    //citire valori potentiometre
+    redPotVal = analogRead(potPinRed);
+    bluePotVal = analogRead(potPinBlue);
+    greenPotVal = analogRead(potPinGreen);
+
+
+    //scriere valori pini led cu functia map()
+    redPinVal = map(redPotVal, 0, 1023, 0, 255); 
+    greenPinVal = map(greenPotVal, 0, 1023, 0, 255); 
+    bluePinVal = map(bluePotVal, 0, 1023, 0, 255);  
+
+    //setare culori RGB
+    analogWrite(ledPinRed,redPinVal);
+    analogWrite(ledPinGreen,greenPinVal);
+    analogWrite(ledPinBlue,bluePinVal);
+}
