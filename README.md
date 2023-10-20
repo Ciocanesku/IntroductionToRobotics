@@ -8,7 +8,7 @@ Repository for Robotics Lab Assignments - Completed during the 3rd Year at the U
 
 # Homeworks
 <details>
-<summary><span style="font-size: 50px; font-weight: bold;">Homework 1</span></summary>
+<summary>Homework 1</summary>
 
 ## Requirements
 
