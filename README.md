@@ -3,7 +3,7 @@
 Repository for Robotics Lab Assignments - Completed during the 3rd Year at the University of Bucharest's Faculty of Mathematics and Computer Science. Each assignment includes task descriptions, implementation details, as well as relevant code and image files.
 
 
-# Homeworks
+# Homework
 <details>
 <summary>Homework 1</summary>
 
