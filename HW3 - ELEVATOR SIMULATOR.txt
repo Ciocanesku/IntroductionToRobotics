@@ -1,0 +1,185 @@
+// Declare all the pins
+const int pinButtonFirstFloor = 2;
+const int pinButtonSecondFloor = 3;
+const int pinButtonThirdFloor = 4;
+
+const int pinLedFirstFloor = 8;
+const int pinLedSecondFloor = 9;
+const int pinLedThirdFloor = 10;
+const int pinLedElevator = 11;
+
+const int pinBuzzer = 13;
+
+// Declare initial states
+byte stateButtonFirstFloor = LOW;
+byte stateButtonSecondFloor = LOW;
+byte stateButtonThirdFloor = LOW;
+
+byte stateLedFirstFloor = LOW;
+byte stateLedSecondFloor = LOW;
+byte stateLedThirdFloor = LOW;
+byte stateLedElevator = LOW;
+
+byte stateBuzzer = LOW;
+
+// Declare the buzzer tone values
+int buzzerToneClosing = 1000;
+int buzzerToneMoving = 500;
+
+
+
+// Variables for elevator state
+int currentFloor = 1;  
+int nextFloor = 1; 
+int doorCloseTime = 0;  
+const int doorCloseDuration = 2000;  
+byte doorClose = false;
+int ledElevatorBlinkTime = 500;
+int ledElevatorLastBlinkTime = 0;
+
+// Elevator level-switching variables
+bool levelSwitching = false;
+int levelSwitchEndTime = 0;
+const int levelSwitchTime = 2000; 
+
+
+// Button-press queue
+const int maxQueueSize = 5;
+int buttonPressQueue[maxQueueSize];  
+int queueFront = 0;
+int queueRear = 0;
+int queueSize = 0;
+
+// Debounce variables
+const int time = 50;  
+int lastTime = 0;
+
+void setup() {
+  pinMode(pinButtonFirstFloor, INPUT_PULLUP);
+  pinMode(pinButtonSecondFloor, INPUT_PULLUP);
+  pinMode(pinButtonThirdFloor, INPUT_PULLUP);
+
+  pinMode(pinLedFirstFloor, OUTPUT);
+  pinMode(pinLedSecondFloor, OUTPUT);
+  pinMode(pinLedThirdFloor, OUTPUT);
+  pinMode(pinLedElevator, OUTPUT);
+
+  pinMode(pinBuzzer, OUTPUT);
+}
+
+void loop() {
+// Read button states and apply the handleButtonPress function
+  byte readingButtonFirstFloor = digitalRead(pinButtonFirstFloor);
+  byte readingButtonSecondFloor = digitalRead(pinButtonSecondFloor);
+  byte readingButtonThirdFloor = digitalRead(pinButtonThirdFloor);
+
+
+  if (millis() - lastTime >= time) {  //debouncing line
+    if (readingButtonFirstFloor != stateButtonFirstFloor) { //checking if any button is pressed, if it is, we add the value in the queue
+      if (readingButtonFirstFloor == LOW) {
+        addToQueue(1);
+      }
+      stateButtonFirstFloor = readingButtonFirstFloor;
+      lastTime = millis();
+    }
+
+    if (readingButtonSecondFloor != stateButtonSecondFloor) {
+      if (readingButtonSecondFloor == LOW) {
+        addToQueue(2);
+      }
+      stateButtonSecondFloor = readingButtonSecondFloor;
+      lastTime = millis();
+    }
+
+    if (readingButtonThirdFloor != stateButtonThirdFloor) {
+      if (readingButtonThirdFloor == LOW) {
+        addToQueue(3);
+      }
+      stateButtonThirdFloor = readingButtonThirdFloor;
+      lastTime = millis();
+    }
+  }
+   
+   if(queueSize > 0 && !doorClose && !levelSwitching){ //if we have elements in queue and we are not "using" the elevator we can go to the next button pressed 
+    nextFloor = buttonPressQueue[queueFront];
+
+    if (nextFloor != currentFloor)  // if the next floor is not the one we are currently at, we can start the trip
+    {
+      doorClose=true;
+      currentFloor=nextFloor;
+      levelSwitching = false;
+      doorCloseTime = millis() + doorCloseDuration;
+      levelSwitchEndTime = doorCloseTime + levelSwitchTime;
+      stateLedElevator = HIGH;
+      digitalWrite(pinLedElevator, stateLedElevator);
+    }
+    
+    removeFromQueue();
+   }
+
+  if(doorClose) //while the door is closing, we hear the sound
+    {soundBuzzer(1);}
+
+  if (doorClose && millis() >= doorCloseTime) {  //start timer for closing doors, turn all the leds off
+    stateLedFirstFloor = LOW;
+    stateLedSecondFloor = LOW;
+    stateLedThirdFloor = LOW;
+    digitalWrite(pinLedFirstFloor,stateLedFirstFloor);
+    digitalWrite(pinLedSecondFloor,stateLedSecondFloor);
+    digitalWrite(pinLedThirdFloor, stateLedSecondFloor);
+    if (!levelSwitching) {
+      levelSwitching = true;
+    }
+    doorClose= false;
+  }
+
+   if (levelSwitching && (millis() - ledElevatorLastBlinkTime >= ledElevatorBlinkTime)) { //led blinks while level switching
+    ledElevatorLastBlinkTime = millis();
+    digitalWrite(pinLedElevator, !digitalRead(pinLedElevator)); 
+  }
+
+  if(levelSwitching)
+  {soundBuzzer(2);}
+
+  if(levelSwitching && millis() >= levelSwitchEndTime) //end the transition
+  {
+    levelSwitching=false;
+  }
+
+  if(!levelSwitching && !doorClose) //after the transition is made, we turn on the led for current level
+  {
+  digitalWrite(pinLedFirstFloor, currentFloor == 1 ? HIGH : LOW);
+  digitalWrite(pinLedSecondFloor, currentFloor == 2 ? HIGH : LOW);
+  digitalWrite(pinLedThirdFloor, currentFloor == 3 ? HIGH : LOW);}
+  }
+
+
+void addToQueue(int floor){  //function for adding elements to queue
+  if (queueSize < maxQueueSize) {
+    buttonPressQueue[queueRear] = floor;
+    queueRear = queueRear + 1;
+    queueSize++;
+  }
+}
+
+void removeFromQueue(){  //function for removing 
+  if(queueSize>0)
+  {
+    for(int i = queueFront; i<queueRear ; i++)
+    {
+      buttonPressQueue[i]=buttonPressQueue[i+1];
+    }
+    queueRear = queueRear-1;
+    queueSize--;
+  }
+}
+
+void soundBuzzer(int buzzerType) { //function for the two types of buzzers
+  if (buzzerType == 1) {
+    // sound moving
+    tone(pinBuzzer, buzzerToneMoving, 500);
+  } else if (buzzerType == 2) {
+    // sound door closing
+    tone(pinBuzzer, buzzerToneClosing, 500);
+  }
+}
