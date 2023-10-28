@@ -90,3 +90,9 @@ This project simulates a 3-floor elevator using the Arduino platform. It include
 - 3 push buttons for call buttons
 - Buzzer for audio feedback
 </details>
+
+## Photo of the circuit
+![ELEVATOR-SIMULATOR](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/b84ffb8b-ae7e-40e3-a5bd-a8ae528422d4)
+
+## Video
+[Watch the video](https://www.youtube.com/shorts/PnvZjtRN8aw)
