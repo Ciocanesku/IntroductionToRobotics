@@ -125,6 +125,7 @@ byte stateBuzzer = LOW;
 // Declare the buzzer tone values
 int buzzerToneClosing = 1000;
 int buzzerToneMoving = 500;
+int buzzerTime = 500;
 
 
 
@@ -277,10 +278,10 @@ void removeFromQueue(){  //function for removing
 void soundBuzzer(int buzzerType) { //function for the two types of buzzers
   if (buzzerType == 1) {
     // sound moving
-    tone(pinBuzzer, buzzerToneMoving, 500);
+    tone(pinBuzzer, buzzerToneMoving, buzzerTime);
   } else if (buzzerType == 2) {
     // sound door closing
-    tone(pinBuzzer, buzzerToneClosing, 500);
+    tone(pinBuzzer, buzzerToneClosing, buzzerTime);
   }
 }
 ```
