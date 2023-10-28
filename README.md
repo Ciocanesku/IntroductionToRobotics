@@ -238,7 +238,7 @@ void loop() {
     digitalWrite(pinLedElevator, !digitalRead(pinLedElevator)); 
   }
 
-  if(levelSwitching)
+  if(levelSwitching) //sound the buzzer while the elevator is moving
   {soundBuzzer(2);}
 
   if(levelSwitching && millis() >= levelSwitchEndTime) //end the transition
