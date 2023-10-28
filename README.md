@@ -283,7 +283,7 @@ void soundBuzzer(int buzzerType) { //function for the two types of buzzers
     tone(pinBuzzer, buzzerToneClosing, 500);
   }
 }
-...
+```
 
 </details>
 
