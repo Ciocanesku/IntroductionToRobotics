@@ -5,7 +5,7 @@ Repository for Robotics Lab Assignments - Completed during the 3rd Year at the U
 
 # Homework
 <details>
-<summary>Homework 1</summary>
+<summary>Homework 1 - RGB with three potentiometers</summary>
 
 ## Requirements
 
@@ -65,3 +65,28 @@ void loop() {
     analogWrite(ledPinBlue,bluePinVal);
 }
 ```
+</details>
+
+<details>
+  <summary>Homework 2 - Elevator Simulator</summary>
+
+## Requirements
+This project simulates a 3-floor elevator using the Arduino platform. It includes LED indicators, buttons for each floor, a buzzer for audio feedback, and implements a control system to manage elevator movements and user interactions.
+- LED Indicators: Each of the 3 LEDs represents one of the 3 floors. The LED corresponding to the current floor lights up. An additional LED represents the elevator's operational state, blinking when the elevator is moving and remaining static when stationary.
+
+- Buttons: Three buttons are implemented to simulate call buttons from the 3 floors. When pressed, the elevator simulates movement towards the pressed floor after a short interval (2-3 seconds).
+
+- Buzzer: The buzzer provides audio feedback in the following scenarios:
+  - Elevator arriving at the desired floor (something resembling a "cling").
+  - Elevator doors closing and movement (split into two different sounds).
+
+- State Change & Timers: The system handles state changes and timers. If the elevator is already at the desired floor, pressing the button for that floor has no effect. Otherwise, after a button press, the elevator waits for the doors to close and then moves to the corresponding floor. If the elevator is in movement, it either does nothing or stacks its decision (gets to the first programmed floor, opens the doors, waits, closes them, and then goes to the next desired floor).
+
+- Debounce: Debounce is implemented for the buttons to avoid unintentional repeated button presses.
+
+## Components
+- 4 LEDs for floor indicators and elevator state
+- 4 resistors, 3-220 ohm for floor LEDs and 1-330 ohm for elevator LED (they should be between 220-330, it just happened to have those 4 near me when I made the circuit)
+- 3 push buttons for call buttons
+- Buzzer for audio feedback
+</details>
