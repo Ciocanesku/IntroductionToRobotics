@@ -123,9 +123,9 @@ byte stateLedElevator = LOW;
 byte stateBuzzer = LOW;
 
 // Declare the buzzer tone values
-int buzzerToneClosing = 1000;
-int buzzerToneMoving = 500;
-int buzzerTime = 500;
+const int buzzerToneClosing = 1000;
+const int buzzerToneMoving = 500;
+const int buzzerTime = 500;
 
 
 
