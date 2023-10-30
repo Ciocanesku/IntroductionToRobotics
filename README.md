@@ -5,7 +5,7 @@ Repository for Robotics Lab Assignments - Completed during the 3rd Year at the U
 
 # Homework
 <details>
-<summary>Homework 1 - RGB with three potentiometers</summary>
+<summary>Homework 2 - RGB with three potentiometers</summary>
 
 ## Requirements
 
@@ -68,7 +68,7 @@ void loop() {
 </details>
 
 <details>
-  <summary>Homework 2 - Elevator Simulator</summary>
+  <summary>Homework 3 - Elevator Simulator</summary>
 
 ## Requirements
 This project simulates a 3-floor elevator using the Arduino platform. It includes LED indicators, buttons for each floor, a buzzer for audio feedback, and implements a control system to manage elevator movements and user interactions.
