@@ -23,9 +23,9 @@ byte stateLedElevator = LOW;
 byte stateBuzzer = LOW;
 
 // Declare the buzzer tone values
-const int buzzerToneClosing = 1000;
-const int buzzerToneMoving = 500;
-const int buzzerTime = 500;
+int buzzerToneClosing = 1000;
+int buzzerToneMoving = 500;
+int buzzerToneArriving = 2000;
 
 
 
@@ -42,7 +42,9 @@ int ledElevatorLastBlinkTime = 0;
 bool levelSwitching = false;
 int levelSwitchEndTime = 0;
 const int levelSwitchTime = 2000; 
-
+const int arrivingTime = 100;
+int arrivingTimeEnd = 0;
+bool arrivedNextFloor = false;
 
 // Button-press queue
 const int maxQueueSize = 5;
@@ -101,7 +103,7 @@ void loop() {
     }
   }
    
-   if(queueSize > 0 && !doorClose && !levelSwitching){ //if we have elements in queue and we are not "using" the elevator we can go to the next button pressed 
+   if(queueSize > 0 && !doorClose && !levelSwitching && !arrivedNextFloor){ //if we have elements in queue and we are not "using" the elevator we can go to the next button pressed 
     nextFloor = buttonPressQueue[queueFront];
 
     if (nextFloor != currentFloor)  // if the next floor is not the one we are currently at, we can start the trip
@@ -109,8 +111,10 @@ void loop() {
       doorClose=true;
       currentFloor=nextFloor;
       levelSwitching = false;
+      arrivedNextFloor = false;
       doorCloseTime = millis() + doorCloseDuration;
       levelSwitchEndTime = doorCloseTime + levelSwitchTime;
+      arrivingTimeEnd = levelSwitchEndTime + arrivingTime;
       stateLedElevator = HIGH;
       digitalWrite(pinLedElevator, stateLedElevator);
     }
@@ -132,6 +136,7 @@ void loop() {
       levelSwitching = true;
     }
     doorClose= false;
+    noTone(pinBuzzer);
   }
 
    if (levelSwitching && (millis() - ledElevatorLastBlinkTime >= ledElevatorBlinkTime)) { //led blinks while level switching
@@ -145,14 +150,31 @@ void loop() {
   if(levelSwitching && millis() >= levelSwitchEndTime) //end the transition
   {
     levelSwitching=false;
+    if(!arrivedNextFloor)
+      arrivedNextFloor = true;
+    noTone(pinBuzzer);
   }
 
-  if(!levelSwitching && !doorClose) //after the transition is made, we turn on the led for current level
+    if(!levelSwitching && !doorClose) //after the transition is made, we turn on the led for current level
   {
   digitalWrite(pinLedFirstFloor, currentFloor == 1 ? HIGH : LOW);
   digitalWrite(pinLedSecondFloor, currentFloor == 2 ? HIGH : LOW);
-  digitalWrite(pinLedThirdFloor, currentFloor == 3 ? HIGH : LOW);}
+  digitalWrite(pinLedThirdFloor, currentFloor == 3 ? HIGH : LOW);
   }
+
+  if(arrivedNextFloor) // check if arrived next floor to sound buzzer
+    {
+      soundBuzzer(3);
+    }
+  
+    if(arrivedNextFloor && millis() >= arrivingTimeEnd) //end the transition
+  {
+    arrivedNextFloor = false;
+    noTone(pinBuzzer);
+  }
+
+
+}
 
 
 void addToQueue(int floor){  //function for adding elements to queue
@@ -178,9 +200,16 @@ void removeFromQueue(){  //function for removing
 void soundBuzzer(int buzzerType) { //function for the two types of buzzers
   if (buzzerType == 1) {
     // sound moving
-    tone(pinBuzzer, buzzerToneMoving, buzzerTime);
-  } else if (buzzerType == 2) {
-    // sound door closing
-    tone(pinBuzzer, buzzerToneClosing, buzzerTime);
+    tone(pinBuzzer, buzzerToneMoving, levelSwitchTime);
   }
+  if (buzzerType == 2) {
+    // sound door closing
+    tone(pinBuzzer, buzzerToneClosing, doorCloseDuration);
+  }
+  if(buzzerType == 3){
+    // sound arriving
+    tone(pinBuzzer, buzzerToneArriving, arrivingTime);
+  }
+
+
 }
