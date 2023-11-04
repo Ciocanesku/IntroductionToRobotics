@@ -333,6 +333,10 @@ Use the joystick to control the position ofthe segment and ”draw” on the dis
 ## Photo of the circuit
 ![7DD controlled with joystick](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/ec06d837-e228-4569-a9a5-9051916277b5)
 
+## Electric scheme
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/f143e25a-f292-4208-82ac-e084300916e9)
+
 
 ## Link for video
 
