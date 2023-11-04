@@ -315,3 +315,215 @@ void soundBuzzer(int buzzerType) { //function for the two types of buzzers
 
 </details>
 
+<details>
+<summary>Homework 4 - 7DD controlled using a joystick</summary>
+
+## Requirements
+Use the joystick to control the position ofthe segment and ”draw” on the display.  The movement between segments should be natural, meaning they should jump from the current positiononly to neighbors, but without passing through ”walls”. The  initial  position  should  be  on  the  DP.  The  current position always blinks (irrespective of the fact that the segment is on or off).  Use the joystick to move from one position to neighbors (see table for corresponding movement).  Short pressing the button toggles the segmentstate  from  ON  to  OFF  or  from  OFF  to  ON.  Long  pressing  the  button resets the entire display by turning all the segments OFF and moving thecurrent position to the decimal point.
+
+## Neighbors table
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/f22934ff-6c4c-4878-ba37-badac2befa32)
+
+
+## Components
+- 7 digit display
+- 8 resistors between 220-330 ohm
+- Joystick
+
+## Photo of the circuit
+![7DD controlled with joystick](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/ec06d837-e228-4569-a9a5-9051916277b5)
+
+
+## Link for video
+
+[Watch the video](https://youtube.com/shorts/9tAKxipS99k)
+
+## Code
+
+```arduino
+// declare all the pins
+const int pinSW = 2; // digital pin connected to switch output
+const int pinX = A0; // pin X output
+const int pinY = A1; // pin Y output
+byte swState = LOW;
+int xValue = 0;
+int yValue = 0;
+
+// declare all the segments pins
+const int pinA = 12;
+const int pinB = 10;
+const int pinC = 9;
+const int pinD = 8;
+const int pinE = 7;
+const int pinF = 6;
+const int pinG = 5;
+const int pinDP = 4;
+const int segSize = 8;
+int index = 7; // start with the point
+
+const int noOfDigits = 10;
+byte state = HIGH;
+byte dpState = LOW;
+int segments[segSize] = {
+  pinA, pinB, pinC, pinD, pinE, pinF, pinG, pinDP
+};
+
+const int trasholdRight = 620;
+const int trasholdLeft = 420;
+const int trasholdUp = 607;
+const int trasholdDown = 407;
+
+int movementMatrix[8][4] = {  // UP, DOWN, LEFT, RIGHT
+  {-1, 6, 5, 1}, // a
+  {0, 6, 5, -1}, // b
+  {6, 3, 4, 7}, // c
+  {6, -1, 4, 2}, // d
+  {6, 3, -1, 2}, // e
+  {0, 6, -1, 1}, // f
+  {0, 3, -1, -1}, // g
+  {-1, -1, 2, -1}, // dp
+};
+
+bool moving = false;
+
+const int impossibleMove = -1;
+
+const int blinkTime = 500;  // blink interval
+unsigned long lastBlinkTime = 0;
+bool segmentOn = false;
+
+int holdSegments[9]; //array for storing the segments that are "clicked"
+int holdSegmentsSize = -1;
+
+byte buttonState = HIGH;    // current state of the button
+byte lastButtonState = HIGH;  // previous state of the button
+byte reading = LOW;
+int buttonPressStartTime = 0;
+const int resetTime = 2000;
+unsigned long lastDebounceTime = 0;  // time of the last button state change
+unsigned long debounceDelay = 50;  // debounce time in milliseconds
+
+
+void setup() {
+  // initialize all the pins
+  pinMode(pinSW, INPUT_PULLUP);
+  for (int i = 0; i < segSize; i++) {
+    pinMode(segments[i], OUTPUT);
+  }
+  Serial.begin(9600);
+}
+
+void loop() {
+  xValue = analogRead(pinX);
+  yValue = analogRead(pinY);
+  reading = digitalRead(pinSW);
+
+  if (reading != lastButtonState) {
+    lastDebounceTime = millis();  // update the last debounce time
+  }
+
+  if (millis() - lastDebounceTime > debounceDelay) {
+    if (reading != buttonState) {
+      buttonState = reading;
+
+      if (buttonState == LOW) {
+        if (buttonPressStartTime == 0) {
+          buttonPressStartTime = millis();  // record the start time of button press
+        }
+      } else {
+        if (millis() - buttonPressStartTime >= resetTime) {
+          // if the button has been held for 2 seconds or more, reset calling clearHold()
+          clearHold();
+        } else {
+          holdUnhold(index);
+          Serial.print(index);
+        }
+        buttonPressStartTime = 0;  // reset the start time when the button is released
+      }
+    }
+  }
+
+  lastButtonState = reading;
+
+  if (moving && xValue >= trasholdLeft && xValue <= trasholdRight && yValue >= trasholdDown && yValue <= trasholdUp) { //button is no more moving
+    moving = !moving;
+  }
+
+  if (!moving) { //check to start the moving state, and get the next index from the moveMatrix
+    if (xValue >= trasholdRight) {
+      if (movementMatrix[index][3] != impossibleMove) {
+        index = movementMatrix[index][3];
+      }
+      moving = true;
+    } else if (xValue <= trasholdLeft) {
+      if (movementMatrix[index][2] != impossibleMove) {
+        index = movementMatrix[index][2];
+      }
+      moving = true;
+    } else if (yValue <= trasholdDown) {
+      if (movementMatrix[index][0] != impossibleMove) {
+        index = movementMatrix[index][0];
+      }
+      moving = true;
+    } else if (yValue >= trasholdUp) {
+      if (movementMatrix[index][1] != impossibleMove) {
+        index = movementMatrix[index][1];
+      }
+      moving = true;
+    }
+  }
+
+  // reset all segments
+  for (int i = 0; i < segSize; i++) {
+    digitalWrite(segments[i], LOW);
+  }
+
+  if (segmentOn) {
+    digitalWrite(segments[index], HIGH);
+  }
+
+  for (int i = 0; i <= holdSegmentsSize; i++) {
+    if (index != holdSegments[i]) {
+      digitalWrite(segments[holdSegments[i]], HIGH);
+    }
+  }
+
+  if (millis() - lastBlinkTime >= blinkTime) { //used to make the current position blink
+    lastBlinkTime = millis();
+    segmentOn = !segmentOn;
+  }
+}
+
+void holdUnhold(int i) { //function to add/remove elements from array
+  int ok = 0;
+  for (int j = 0; j <= holdSegmentsSize && ok == 0; j++) {
+    if (holdSegments[j] == i) { //if already in the array, delete it from there
+      removeFromHold(j);
+      ok = 1;
+    }
+  }
+  if (ok == 0) { // if not in the array, put it in
+    holdSegmentsSize++;
+    holdSegments[holdSegmentsSize] = i;
+  }
+}
+
+void removeFromHold(int i) {
+  for (int k = i; k < holdSegmentsSize; k++) {
+    holdSegments[k] = holdSegments[k + 1];
+  }
+  holdSegmentsSize--;
+}
+
+void clearHold() { //function to reset the display
+  holdSegmentsSize = -1;
+  index = 7;
+  for (int i = 0; i < segSize; i++) {
+    digitalWrite(segments[i], LOW);
+  }
+}
+```
+</details>
+
+
+
