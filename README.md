@@ -346,22 +346,22 @@ Use the joystick to control the position ofthe segment and ”draw” on the dis
 
 ```arduino
 // declare all the pins
-const int pinSW = 2; // digital pin connected to switch output
-const int pinX = A0; // pin X output
-const int pinY = A1; // pin Y output
+const int pinSWJoystick = 2; // digital pin connected to switch output
+const int pinXJoystick = A0; // pin X output
+const int pinYJoystick = A1; // pin Y output
 byte swState = LOW;
 int xValue = 0;
 int yValue = 0;
 
 // declare all the segments pins
-const int pinA = 12;
-const int pinB = 10;
-const int pinC = 9;
-const int pinD = 8;
-const int pinE = 7;
-const int pinF = 6;
-const int pinG = 5;
-const int pinDP = 4;
+const int segmentPinA = 12;
+const int segmentPinB = 10;
+const int segmentPinC = 9;
+const int segmentPinD = 8;
+const int segmentPinE = 7;
+const int segmentPinF = 6;
+const int segmentPinG = 5;
+const int segmentPinDP = 4;
 const int segSize = 8;
 int index = 7; // start with the point
 
@@ -369,7 +369,7 @@ const int noOfDigits = 10;
 byte state = HIGH;
 byte dpState = LOW;
 int segments[segSize] = {
-  pinA, pinB, pinC, pinD, pinE, pinF, pinG, pinDP
+  segmentPinA, segmentPinB, segmentPinC, segmentPinD, segmentPinE, segmentPinF, segmentPinG, segmentPinDP
 };
 
 const int trasholdRight = 620;
@@ -410,7 +410,7 @@ unsigned long debounceDelay = 50;  // debounce time in milliseconds
 
 void setup() {
   // initialize all the pins
-  pinMode(pinSW, INPUT_PULLUP);
+  pinMode(pinSWJoystick, INPUT_PULLUP);
   for (int i = 0; i < segSize; i++) {
     pinMode(segments[i], OUTPUT);
   }
@@ -418,9 +418,9 @@ void setup() {
 }
 
 void loop() {
-  xValue = analogRead(pinX);
-  yValue = analogRead(pinY);
-  reading = digitalRead(pinSW);
+  xValue = analogRead(pinXJoystick);
+  yValue = analogRead(pinYJoystick);
+  reading = digitalRead(pinSWJoystick);
 
   if (reading != lastButtonState) {
     lastDebounceTime = millis();  // update the last debounce time
