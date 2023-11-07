@@ -346,9 +346,9 @@ Use the joystick to control the position ofthe segment and ”draw” on the dis
 
 ```arduino
 // declare all the pins
-const int pinSWJoystick = 2; // digital pin connected to switch output
-const int pinXJoystick = A0; // pin X output
-const int pinYJoystick = A1; // pin Y output
+const int pinSW = 2; // digital pin connected to switch output
+const int pinX = A0; // pin X output
+const int pinY = A1; // pin Y output
 byte swState = LOW;
 int xValue = 0;
 int yValue = 0;
@@ -363,11 +363,9 @@ const int segmentPinF = 6;
 const int segmentPinG = 5;
 const int segmentPinDP = 4;
 const int segSize = 8;
-int index = 7; // start with the point
+int currentSegmentIndex = 7; // start with the point
 
-const int noOfDigits = 10;
-byte state = HIGH;
-byte dpState = LOW;
+
 int segments[segSize] = {
   segmentPinA, segmentPinB, segmentPinC, segmentPinD, segmentPinE, segmentPinF, segmentPinG, segmentPinDP
 };
@@ -402,7 +400,7 @@ int holdSegmentsSize = -1;
 byte buttonState = HIGH;    // current state of the button
 byte lastButtonState = HIGH;  // previous state of the button
 byte reading = LOW;
-int buttonPressStartTime = 0;
+unsigned long buttonPressStartTime = 0;
 const int resetTime = 2000;
 unsigned long lastDebounceTime = 0;  // time of the last button state change
 unsigned long debounceDelay = 50;  // debounce time in milliseconds
@@ -410,7 +408,7 @@ unsigned long debounceDelay = 50;  // debounce time in milliseconds
 
 void setup() {
   // initialize all the pins
-  pinMode(pinSWJoystick, INPUT_PULLUP);
+  pinMode(pinSW, INPUT_PULLUP);
   for (int i = 0; i < segSize; i++) {
     pinMode(segments[i], OUTPUT);
   }
@@ -418,9 +416,9 @@ void setup() {
 }
 
 void loop() {
-  xValue = analogRead(pinXJoystick);
-  yValue = analogRead(pinYJoystick);
-  reading = digitalRead(pinSWJoystick);
+  xValue = analogRead(pinX);
+  yValue = analogRead(pinY);
+  reading = digitalRead(pinSW);
 
   if (reading != lastButtonState) {
     lastDebounceTime = millis();  // update the last debounce time
@@ -439,8 +437,8 @@ void loop() {
           // if the button has been held for 2 seconds or more, reset calling clearHold()
           clearHold();
         } else {
-          holdUnhold(index);
-          Serial.print(index);
+          holdUnhold(currentSegmentIndex);
+          Serial.print(currentSegmentIndex);
         }
         buttonPressStartTime = 0;  // reset the start time when the button is released
       }
@@ -453,25 +451,25 @@ void loop() {
     moving = !moving;
   }
 
-  if (!moving) { //check to start the moving state, and get the next index from the moveMatrix
+  if (!moving) { //check to start the moving state, and get the next currentSegmentIndex from the moveMatrix
     if (xValue >= trasholdRight) {
-      if (movementMatrix[index][3] != impossibleMove) {
-        index = movementMatrix[index][3];
+      if (movementMatrix[currentSegmentIndex][3] != impossibleMove) { //move right
+        currentSegmentIndex = movementMatrix[currentSegmentIndex][3];
       }
       moving = true;
-    } else if (xValue <= trasholdLeft) {
-      if (movementMatrix[index][2] != impossibleMove) {
-        index = movementMatrix[index][2];
+    } else if (xValue <= trasholdLeft) { //move left
+      if (movementMatrix[currentSegmentIndex][2] != impossibleMove) {
+        currentSegmentIndex = movementMatrix[currentSegmentIndex][2];
       }
       moving = true;
-    } else if (yValue <= trasholdDown) {
-      if (movementMatrix[index][0] != impossibleMove) {
-        index = movementMatrix[index][0];
+    } else if (yValue <= trasholdDown) { //move down
+      if (movementMatrix[currentSegmentIndex][0] != impossibleMove) {
+        currentSegmentIndex = movementMatrix[currentSegmentIndex][0];
       }
       moving = true;
-    } else if (yValue >= trasholdUp) {
-      if (movementMatrix[index][1] != impossibleMove) {
-        index = movementMatrix[index][1];
+    } else if (yValue >= trasholdUp) { //move up
+      if (movementMatrix[currentSegmentIndex][1] != impossibleMove) {
+        currentSegmentIndex = movementMatrix[currentSegmentIndex][1];
       }
       moving = true;
     }
@@ -483,11 +481,11 @@ void loop() {
   }
 
   if (segmentOn) {
-    digitalWrite(segments[index], HIGH);
+    digitalWrite(segments[currentSegmentIndex], HIGH);
   }
 
   for (int i = 0; i <= holdSegmentsSize; i++) {
-    if (index != holdSegments[i]) {
+    if (currentSegmentIndex != holdSegments[i]) {
       digitalWrite(segments[holdSegments[i]], HIGH);
     }
   }
@@ -521,7 +519,7 @@ void removeFromHold(int i) {
 
 void clearHold() { //function to reset the display
   holdSegmentsSize = -1;
-  index = 7;
+  currentSegmentIndex = 7;
   for (int i = 0; i < segSize; i++) {
     digitalWrite(segments[i], LOW);
   }
