@@ -340,7 +340,7 @@ Use the joystick to control the position ofthe segment and ”draw” on the dis
 
 ## Link for video
 
-[Watch the video](https://youtube.com/shorts/9tAKxipS99k)
+[Watch the video](https://youtu.be/z_FnSDS-nrg?si=n3D7EGPW7yPIr7tK)
 
 ## Code
 
