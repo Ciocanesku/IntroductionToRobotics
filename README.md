@@ -527,5 +527,368 @@ void clearHold() { //function to reset the display
 ```
 </details>
 
+<details>
+<summary>Homework 5 - 4-7DD stopwatch timer </summary>
+
+## Requirements
+
+This project involves creating a stopwatch timer using a 4-digit 7-segment display and 3 buttons. The display initially shows "000.0," and the buttons have specific functions:
+
+1. **Button 1 (Start/Pause):**
+   - Starts or pauses the timer.
+
+2. **Button 2 (Reset):**
+   - Resets the timer if in pause mode.
+   - Resets saved laps if in lap viewing mode.
+
+3. **Button 3 (Save Lap):**
+   - Saves lap times during counting mode, up to 4 laps.
+   - Cycles through the last saved laps when pressed (up to 4 laps).
+
+**Workflow:**
+1. Display shows "000.0." Pressing Start initiates the timer.
+2. During timer counting, pressing the lap button saves the timer value (up to 4 laps).
+   - 5th press overrides the 1st saved lap.
+   - Reset button has no effect during counting.
+   - Pause button stops the timer.
+3. In Pause mode, lap button is disabled. Reset button resets the display to "000.0."
+4. After reset, pressing lap button cycles through saved laps.
+   - Continuous pressing cycles laps continuously.
+   - Reset button resets flags and timer to "000.0."
+
+## Photo of the circuit
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/443514bd-a8a0-4771-9a9d-bfa2b13de050)
+
+## Electric Scheme
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/2bda14c0-0e01-4f7c-abb6-ba2e0487d336)
+
+
+## Link for video
+
+[Watch the video](https://youtube.com/shorts/UBYtMDAq3_s)
+
+## Code
+
+```arduino
+// Pin assignments for the shift register
+const int latchPin = 11; // Pin connected to STCP of the shift register (Latch control)
+const int clockPin = 10; // Pin connected to SHCP of the shift register (Clock)
+const int dataPin = 12; // Pin connected to DS of the shift register (Data input)
+
+// Pin assignments for controlling the common cathode/anode pins of the 7-segment digits
+const int segD1 = 4;
+const int segD2 = 5;
+const int segD3 = 6;
+const int segD4 = 7;
+
+// Buttons Pins
+const int buttonStartPin = 2;
+const int buttonResetPin = 3;
+const int buttonLapPin = 8;
+
+// Size of the register in bits
+const byte regSize = 8;
+
+// Array to keep track of the digit control pins
+int displayDigits[] = {segD1, segD2, segD3, segD4};
+const int displayCount = 4; // Number of digits in the display
+
+// Array representing the state of each bit in the shift register
+byte registers[regSize];
+
+// Array holding binary encodings for numbers and letters on a 7-segment display
+const int encodingsNumber = 10;
+byte byteEncodings[encodingsNumber] = {
+    // Encoding for segments A through G and the decimal point (DP)
+    // A B C D E F G DP
+    B11111100, // 0
+    B01100000, // 1
+    B11011010, // 2
+    B11110010, // 3
+    B01100110, // 4
+    B10110110, // 5
+    B10111110, // 6
+    B11100000, // 7
+    B11111110, // 8
+    B11110110  // 9
+};
+
+int activeDisplay = 0;
+
+unsigned long currentSeconds = 0;
+unsigned long currentTenthOfSeconds = 0;
+
+unsigned long lastIncrement = 0;
+unsigned long delayCount = 50; // Delay between updates (milliseconds)
+unsigned long number = 0;      // The number being displayed
+const int numberOf10thOfSecondsInMillisecond = 100;
+const int tenPowerForGetting4Digits = 10000;
+
+const int debounceDelay = 50; // Adjust as needed
+
+byte readingButtonStart = HIGH;
+byte readingButtonReset = HIGH;
+byte readingButtonLap = HIGH;
+
+byte stateButtonStart = HIGH;
+byte stateButtonReset = HIGH;
+byte stateButtonLap = HIGH;
+
+byte activeButtonStart = LOW;
+byte activeButtonReset = HIGH;
+byte activeButtonLap = HIGH;
+
+// Debounce variables
+const int time = 50;  
+unsigned long lastTime = 0;
+
+const int printTime = 1000;
+unsigned long lastPrintTime = 0;
+
+unsigned long lastStopTime = 0;
+unsigned long firstStopTime = 0;
+unsigned long lastStartTime = 0;
+unsigned long pauseStartTime = 0;
+unsigned long elapsedTime = 0;
+
+const int numberOfDigits = 10000;
+
+int stopTimer=0;
+const int lapsNumber=4;
+unsigned long laps[lapsNumber];
+int lapsIndex = -1;
+int lapsViewMode = 0;
+bool lapButtonPressed = false;
+bool resetButtonPressed = false;
+int lapDisplayIndex = -1;
+
+unsigned long lastLapShow = 0;
+unsigned long lapShowTime = 250;
+
+void setup()
+{
+    // Initialize the digital pins connected to the shift register as outputs
+    pinMode(latchPin, OUTPUT);
+    pinMode(clockPin, OUTPUT);
+    pinMode(dataPin, OUTPUT);
+    pinMode(buttonStartPin, INPUT_PULLUP);
+    pinMode(buttonResetPin, INPUT_PULLUP);
+    pinMode(buttonLapPin, INPUT_PULLUP);
+
+    // Initialize the digit control pins as outputs and turn them off
+    for (int i = 0; i < displayCount; i++)
+    {
+        pinMode(displayDigits[i], OUTPUT);
+        digitalWrite(displayDigits[i], LOW);
+    }
+
+    Serial.begin(9600);
+}
+
+void loop()
+{
+   debounce();
+
+    // helperPrint();
+
+    startPause();
+
+    reset();
+
+    lapAdder();
+
+    lapOrTimer();
+
+
+
+}
+
+void writeReg(int digit)
+{
+    // Prepare to shift data by setting the latch pin low
+    digitalWrite(latchPin, LOW);
+    // Shift out the byte representing the current digit to the shift register
+    shiftOut(dataPin, clockPin, MSBFIRST, digit);
+    // Latch the data onto the output pins by setting the latch pin high
+    digitalWrite(latchPin, HIGH);
+}
+
+void writeNumber(unsigned long nr)
+{
+    int currentDigit = 0;
+    for (int i = displayCount - 1; i >= 0; i--)
+    {
+        currentDigit = nr % 10;
+        nr = nr / 10;
+        activateDisplay(i);
+        writeReg(B00000000);
+        if (i == 2) //scriu si punctul pe display 3
+        {
+            byteEncodings[currentDigit] += 1;
+        }
+        writeReg(byteEncodings[currentDigit]);
+        if (i == 2)
+        {
+            byteEncodings[currentDigit] -= 1;
+        }
+        writeReg(B00000000);
+    }
+}
+
+void activateDisplay(int displayNumber)
+{
+    // Turn off all digit control pins to avoid ghosting
+    for (int i = 0; i < displayCount; i++)
+    {
+        digitalWrite(displayDigits[i], HIGH);
+    }
+    // Turn on the current digit control pin
+    digitalWrite(displayDigits[displayNumber], LOW);
+}
+
+void debounce()
+{
+    readingButtonStart = digitalRead(buttonStartPin);
+    readingButtonReset = digitalRead(buttonResetPin);
+    readingButtonLap = digitalRead(buttonLapPin);
+   if (millis() - lastTime >= time) {  //debouncing line
+    if (readingButtonStart != stateButtonStart) { //checking if any button is pressed, if it is, we add the value in the queue
+      if (readingButtonStart == LOW) {
+        activeButtonStart=!activeButtonStart;
+      }
+      stateButtonStart = readingButtonStart;
+      lastTime = millis();
+    }
+
+    if (readingButtonReset != stateButtonReset) {
+      if (readingButtonReset == LOW && !activeButtonStart) {
+        resetButtonPressed = true;
+      }
+      stateButtonReset = readingButtonReset;
+      lastTime = millis();
+    }
+
+    if (readingButtonLap != stateButtonLap) {
+      if (readingButtonLap == LOW) {
+        lapButtonPressed = true;
+      }
+      stateButtonLap = readingButtonLap;
+      lastTime = millis();
+    }
+  }
+}
+
+void helperPrint()
+{
+      if(millis() - lastPrintTime >=printTime)
+    {
+    // Print the states of debounced buttons for verification
+    Serial.print("Button Start: ");
+    Serial.println(activeButtonStart);
+    Serial.print("Button Reset: ");
+    Serial.println(activeButtonReset);
+    Serial.print("Button Lap: ");
+    Serial.println(activeButtonLap);
+    Serial.println("---------------------");
+    for(int i=0; i<4;i++)
+      {Serial.print("LAP ");
+      Serial.print(i);
+      Serial.print(" : ");
+      Serial.println(laps[i]);}
+    lastPrintTime = millis();
+    }
+}
+
+void startPause()
+{
+        if (activeButtonStart)
+    {
+        // Timer is activated, record the elapsed time
+        elapsedTime = millis() - pauseStartTime;
+        activeButtonReset = 0;
+        lapsViewMode = 0;
+    }
+
+    if (!activeButtonStart)
+    {
+        // Timer is stopped, calculate the pause starting time
+        pauseStartTime = millis() - elapsedTime;
+
+    }
+    number = elapsedTime / numberOf10thOfSecondsInMillisecond;
+}
+
+void reset()
+{
+  if(resetButtonPressed == 1 && activeButtonReset == HIGH)
+  {
+    resetLaps();
+    resetButtonPressed = 0;
+  }
+
+  if(resetButtonPressed == 1 && activeButtonStart == LOW)
+    {elapsedTime = 0;
+     pauseStartTime = millis();
+     activeButtonReset=1;
+     resetButtonPressed = 0;
+     lapDisplayIndex=-1;
+    }
+}
+
+void addLap(int nr)
+{
+  lapsIndex++;
+  laps[lapsIndex]=nr;
+  if(lapsIndex == 3)
+    lapsIndex = -1;
+}
+
+void resetLaps()
+{
+  lapsIndex = -1;
+  for(int i=0 ; i<lapsNumber; i++)
+    {
+      laps[i]=0;
+    }
+}
+
+void lapAdder()
+{
+      if(lapButtonPressed && activeButtonStart == 1)
+    {
+      addLap(number%numberOfDigits);
+      lapButtonPressed = !lapButtonPressed;
+    }
+}
+
+void lapOrTimer()
+{
+  if(lapButtonPressed == 1 && activeButtonReset)
+    {
+      lapsViewMode = 1;
+    }
+
+    if(lapsViewMode)
+    {
+      if(stateButtonLap==LOW &&  millis()-lastLapShow >= lapShowTime)
+      {
+      lapButtonPressed = 0;
+      lapDisplayIndex++;
+      if(lapDisplayIndex == 4)
+        lapDisplayIndex = 0;
+      lastLapShow = millis();
+      }
+      writeNumber(laps[lapDisplayIndex]);
+    }
+    else
+    {
+      writeNumber(number);
+    }
+}
+
+```
+</details>
 
 
