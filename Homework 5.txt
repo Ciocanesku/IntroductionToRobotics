@@ -117,23 +117,7 @@ void loop()
 {
    debounce();
 
-    if(millis() - lastPrintTime >=printTime)
-    {
-    // Print the states of debounced buttons for verification
-    Serial.print("Button Start: ");
-    Serial.println(activeButtonStart);
-    Serial.print("Button Reset: ");
-    Serial.println(activeButtonReset);
-    Serial.print("Button Lap: ");
-    Serial.println(activeButtonLap);
-    Serial.println("---------------------");
-    for(int i=0; i<4;i++)
-      {Serial.print("LAP ");
-      Serial.print(i);
-      Serial.print(" : ");
-      Serial.println(laps[i]);}
-    lastPrintTime = millis();
-    }
+    // helperPrint();
 
     startPause();
 
@@ -166,7 +150,7 @@ void writeNumber(unsigned long nr)
         nr = nr / 10;
         activateDisplay(i);
         writeReg(B00000000);
-        if (i == 2)
+        if (i == 2) //scriu si punctul pe display 3
         {
             byteEncodings[currentDigit] += 1;
         }
@@ -220,6 +204,27 @@ void debounce()
       lastTime = millis();
     }
   }
+}
+
+void helperPrint()
+{
+      if(millis() - lastPrintTime >=printTime)
+    {
+    // Print the states of debounced buttons for verification
+    Serial.print("Button Start: ");
+    Serial.println(activeButtonStart);
+    Serial.print("Button Reset: ");
+    Serial.println(activeButtonReset);
+    Serial.print("Button Lap: ");
+    Serial.println(activeButtonLap);
+    Serial.println("---------------------");
+    for(int i=0; i<4;i++)
+      {Serial.print("LAP ");
+      Serial.print(i);
+      Serial.print(" : ");
+      Serial.println(laps[i]);}
+    lastPrintTime = millis();
+    }
 }
 
 void startPause()
@@ -286,9 +291,10 @@ void lapAdder()
 
 void lapOrTimer()
 {
-  if(lapButtonPressed == 1 && activeButtonReset)
+  if(lapButtonPressed == 1 && activeButtonReset && lapsViewMode == 0 )
     {
       lapsViewMode = 1;
+      lapDisplayIndex = lapsIndex;
     }
 
     if(lapsViewMode)
