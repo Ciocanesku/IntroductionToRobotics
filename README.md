@@ -865,9 +865,10 @@ void lapAdder()
 
 void lapOrTimer()
 {
-  if(lapButtonPressed == 1 && activeButtonReset)
+  if(lapButtonPressed == 1 && activeButtonReset && lapsViewMode == 0 )
     {
       lapsViewMode = 1;
+      lapDisplayIndex = lapsIndex;
     }
 
     if(lapsViewMode)
@@ -887,6 +888,7 @@ void lapOrTimer()
       writeNumber(number);
     }
 }
+
 
 ```
 </details>
