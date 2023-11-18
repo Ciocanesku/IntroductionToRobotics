@@ -893,4 +893,60 @@ void lapOrTimer()
 ```
 </details>
 
+<details>
+<summary>Homework 6 - Smart Environment Monitor and Loggers</summary>
+  
+## Objective
+
+The goal of this project is to develop a "Smart Environment Monitor and Logger" using Arduino. The system utilizes various sensors, including an Ultrasonic Sensor (HC-SR04) and an LDR (Light-Dependent Resistor), to gather environmental data. The collected data is logged into EEPROM, providing persistent storage. The system also offers visual feedback through an RGB LED and user interaction via a Serial Menu.
+
+## Components Required
+
+- Arduino Uno Board
+- Ultrasonic Sensor (HC-SR04)
+- LDR (Light-Dependent Resistor)
+- RGB LED
+- Resistors (as needed)
+- Breadboard and connecting wires
+
+(Optional) Additional sensors/components for extended functionality.
+
+## Menu Structure
+
+### 1. Sensor Settings
+- **1.1 Sensors Sampling Interval:** Set the sampling rate for the sensors (1-10 seconds).
+- **1.2 Ultrasonic Alert Threshold:** Set the threshold value for the ultrasonic sensor.
+- **1.3 LDR Alert Threshold:** Set the threshold value for the LDR sensor.
+- **1.4 Back:** Return to the main menu.
+
+### 2. Reset Logger Data
+- **2.1 Yes:** Confirm to delete all data.
+- **2.2 No:** Cancel the data reset.
+
+### 3. System Status
+- **3.1 Current Sensor Readings:** Continuously print sensor readings at the set sampling rate.
+- **3.2 Current Sensor Settings:** Display the sampling rate and threshold values for all sensors.
+- **3.3 Display Logged Data:** Display the last 10 sensor readings for all sensors.
+- **3.4 Back:** Return to the main menu.
+
+### 4. RGB LED Control
+- **4.1 Manual Color Control:** Set RGB colors manually.
+- **4.2 LED: Toggle Automatic ON/OFF:** Control LED color based on sensor values.
+- **4.3 Back:** Return to the main menu.
+
+
+## Photo of the circuit
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/22bf52dc-13e3-4483-94dd-a6a8400eb9a6)
+
+
+## Link for video
+
+[Watch the video](https://youtube.com/shorts/sva0xaQCIns)
+
+## Code
+
+The code for this project can be found in the repository files.
+
+
 
