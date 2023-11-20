@@ -432,7 +432,6 @@ void manualColorControl() {
   Serial.print("\n Red value:");
   // Wait for user input
   while (!Serial.available()) {
-    // You can add any additional logic here if needed
   }
   // Read RGB values from user input
   savedRed = Serial.parseInt();
@@ -440,14 +439,13 @@ void manualColorControl() {
   Serial.print("\n Green value:");
   // Wait for user input
   while (!Serial.available()) {
-    // You can add any additional logic here if needed
+ 
   }
   savedGreen = Serial.parseInt();
 
   Serial.println("\n Blue value:");
   // Wait for user input
   while (!Serial.available()) {
-    // You can add any additional logic here if needed
   }
   savedBlue = Serial.parseInt();
 
