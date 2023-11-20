@@ -939,6 +939,10 @@ The goal of this project is to develop a "Smart Environment Monitor and Logger" 
 
 ![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/22bf52dc-13e3-4483-94dd-a6a8400eb9a6)
 
+## Electric scheme
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/a38853b4-c9c2-4ca3-9809-9b304bc6522c)
+
 
 ## Link for video
 
