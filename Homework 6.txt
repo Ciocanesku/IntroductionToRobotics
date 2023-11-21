@@ -17,6 +17,8 @@ int distance = 0;
 int ledVal = 0;
 int currentMenuLevel=1;
  
+unsigned long currentTime=0; 
+
 int currentMenuRead = 0;
 
 int selectedSubmenu = 0;
@@ -159,6 +161,19 @@ void handleAction()
   {
     //wait for input, i use this multiple times, i did not find 
     // any other solution :(
+          // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
+
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
   if(Serial.available() >0)
     currentMenuRead = Serial.parseInt();
@@ -169,7 +184,19 @@ void handleAction()
           case 1:
               Serial.println("\n Enter the sampling value: ");
                while (!Serial.available()) {
+          // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
 
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
                }
                actionInput = Serial.parseInt();
                 if(actionInput<=10 && actionInput>=1)
@@ -184,7 +211,19 @@ void handleAction()
           case 2:
               Serial.println("\n Enter the ultrasonic threshold min value: ");
                while (!Serial.available()) {
+          // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
 
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
                }
                actionInput = Serial.parseInt();
                 if(actionInput<=400 && actionInput>=2)
@@ -339,7 +378,7 @@ void displayCurrentSensorReadings() {
 
   while (!Serial.available()) {
     // Check if enough time has passed since the last reading
-    unsigned long currentTime = millis();
+    currentTime = millis();
     if (currentTime - lastReadingTime >= samplingRate * 1000) {
       // Read actual ultrasonic and LDR sensor values
       readUltrasonicSensor();
@@ -380,7 +419,19 @@ void displayCurrentSensorSettings() {
 
   while(!Serial.available())
   {
+          // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
 
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
   // Clear the buffer
   Serial.read();
@@ -412,7 +463,19 @@ void displayLoggedData() {
 
   // Wait for user input to exit
   while (!Serial.available()) {
+          // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
 
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
 
   // Clear the buffer
@@ -432,6 +495,19 @@ void manualColorControl() {
   Serial.print("\n Red value:");
   // Wait for user input
   while (!Serial.available()) {
+              // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
+
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
   // Read RGB values from user input
   savedRed = Serial.parseInt();
@@ -439,13 +515,38 @@ void manualColorControl() {
   Serial.print("\n Green value:");
   // Wait for user input
   while (!Serial.available()) {
- 
+           // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
+
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
   savedGreen = Serial.parseInt();
 
   Serial.println("\n Blue value:");
   // Wait for user input
   while (!Serial.available()) {
+              // Check if enough time has passed since the last reading
+    currentTime = millis();
+    if (currentTime - lastReadingTime >= samplingRate * 1000) {
+      // Read actual ultrasonic and LDR sensor values
+      readUltrasonicSensor();
+      readLDRSensor();
+
+      handleLedState();
+      // Log the current sensor values
+      logSensorValues();
+
+      lastReadingTime = currentTime; // Update the last reading time
+    }
   }
   savedBlue = Serial.parseInt();
 
