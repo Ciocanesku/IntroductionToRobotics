@@ -1,0 +1,335 @@
+#include "LedControl.h"
+#include <EEPROM.h>
+
+const byte dinPin = 12;
+const byte clockPin = 11;
+const byte loadPin = 10;
+const byte matrixSize = 8;
+LedControl lc = LedControl(dinPin, clockPin, loadPin, 1);
+byte matrixBrightness = 2;
+const int pinSW = 2; // digital pin connected to switch output
+const int pinX = A0;
+const int pinY = A1;
+
+const int trasholdRight = 620;
+const int trasholdLeft = 420;
+const int trasholdUp = 607;
+const int trasholdDown = 407;
+
+const int playerBlinkInterval = 500;
+const int bombBlinkInterval = 250;
+
+int xValue = 0;
+int yValue = 0;
+
+bool wallsGenerated = false;
+bool wallMatrix[matrixSize][matrixSize]; // Matrix to store the wall configuration
+int playerRow = 0;
+int playerCol = 0;
+int bombRow = -1; // Initial bomb position set to invalid
+int bombCol = -1;
+const int percentage = 25; //percentage for completion of map
+bool moveRegistered = false;
+bool bombPlaced = false;
+unsigned long bombStartTime = 0;
+const unsigned long bombDuration = 3000; //
+int wallsCleared = 0;
+int highScore = 0;
+int score = 0;
+bool gameFinished = false;
+int bombsPlaced = 0;
+int numberOfWalls = 0;
+bool showedEndMessage = false;
+int lives = 2;
+bool deathFromBomb = false;
+
+const uint64_t crown[] = {
+  0x0000ffffffff9900
+};
+const int crownLen = sizeof(crown)/8;
+
+const uint64_t end[] = {
+  0xf0d010f00f0d010f
+};
+const int endLen = sizeof(end)/8;
+
+const uint64_t dead[] = {
+  0x00423c00a542a500
+};
+const int deadLen = sizeof(dead)/8;
+
+
+
+
+void setup()
+{
+  pinMode(pinSW, INPUT_PULLUP);
+  wallsGenerated = false;
+  randomSeed(analogRead(A0)); // Seed the random number generator
+  lc.shutdown(0, false);
+  lc.setIntensity(0, matrixBrightness);
+  lc.clearDisplay(0);
+  Serial.begin(9600);
+  if (!wallsGenerated)
+  {
+    generateRandomWalls(percentage);
+    wallsGenerated = true;
+  }
+}
+
+void loop()
+{
+  if(!gameFinished)
+  {displayWalls();
+
+  xValue = analogRead(pinX);
+  yValue = analogRead(pinY);
+
+  handleJoystickInput();
+
+  // Check if the bomb is placed and handle its explosion
+  if (bombPlaced)
+  {
+    unsigned long currentTime = millis();
+    if (currentTime - bombStartTime >= bombDuration)
+    {
+      explodeBomb();
+    }
+  }
+
+  // Display the player and bomb at the updated positions
+  displayPlayer(playerRow, playerCol, millis() % (2 * playerBlinkInterval) < playerBlinkInterval);
+  displayBomb(bombRow, bombCol, millis() % (2 * bombBlinkInterval) < bombBlinkInterval);
+  checkFinished();
+  }
+  else
+  {
+    endOfTheGame();
+  }
+}
+
+void displayPlayer(int row, int col, bool on)
+{
+  lc.setLed(0, row, col, on);
+}
+
+void displayBomb(int row, int col, bool on)
+{
+  lc.setLed(0, row, col, on);
+}
+
+void displayWall(int row, int col, bool on)
+{
+  lc.setLed(0, row, col, on);
+}
+
+void clearMatrix()
+{
+  for (int row = 0; row < matrixSize; row++)
+  {
+    for (int col = 0; col < matrixSize; col++)
+    {
+      lc.setLed(0, row, col, false);
+    }
+  }
+}
+
+void generateRandomWalls(int percentage)
+{
+  for (int row = 0; row < matrixSize; row++)
+  {
+    for (int col = 0; col < matrixSize; col++)
+    {
+      int randomValue = random(100);
+      if (row > 1 || col > 1)
+        {wallMatrix[row][col] = (randomValue < percentage);
+        }
+    }
+  }
+}
+
+void displayWalls()
+{
+  for (int row = 0; row < matrixSize; row++)
+  {
+    for (int col = 0; col < matrixSize; col++)
+    {
+      if (wallMatrix[row][col])
+      {
+        displayWall(row, col, true);
+      }
+    }
+  }
+}
+
+void handleJoystickInput()
+{
+  if (!moveRegistered)
+  {
+    if (xValue >= trasholdRight)
+    {
+      movePlayer(0, 1); // Move right
+      moveRegistered = true;
+    }
+    else if (xValue <= trasholdLeft)
+    {
+      movePlayer(0, -1); // Move left
+      moveRegistered = true;
+    }
+    else if (yValue >= trasholdUp)
+    {
+      movePlayer(1, 0); // Move up
+      moveRegistered = true;
+    }
+    else if (yValue <= trasholdDown)
+    {
+      movePlayer(-1, 0); // Move down
+      moveRegistered = true;
+    }
+  }
+  else
+  {
+    // Check if joystick is back in the neutral position
+    if (xValue > trasholdLeft && xValue < trasholdRight && yValue < trasholdUp && yValue > trasholdDown)
+    {
+      moveRegistered = false;
+    }
+  }
+
+  // Check if the button is pressed and place a bomb if not already placed
+  if (digitalRead(pinSW) == LOW && !bombPlaced)
+  {
+    placeBomb();
+  }
+}
+
+void movePlayer(int rowChange, int colChange)
+{
+  int nextRow = playerRow + rowChange;
+  int nextCol = playerCol + colChange;
+
+  // Check if the next position is within the matrix boundaries and not a wall
+  if (nextRow >= 0 && nextRow < matrixSize && nextCol >= 0 && nextCol < matrixSize && !wallMatrix[nextRow][nextCol])
+  {
+    // Clear the previous position
+    displayPlayer(playerRow, playerCol, false);
+
+    // Update the player's position
+    playerRow = nextRow;
+    playerCol = nextCol;
+
+  }
+}
+
+void placeBomb()
+{
+  // Place a bomb at the player's current position if there is no bomb already placed
+  if (!bombPlaced)
+  {
+    bombRow = playerRow;
+    bombCol = playerCol;
+    bombPlaced = true;
+    bombStartTime = millis();
+    bombsPlaced++;
+  }
+}
+
+void explodeBomb()
+{
+   // Check if the player is in the bomb range
+  if (playerRow >= bombRow - 1 && playerRow <= bombRow + 1 &&
+      playerCol >= bombCol - 1 && playerCol <= bombCol + 1) {
+    lives--;
+    if(lives==0)
+    {gameFinished = true;
+    deathFromBomb = true;
+    }
+  }
+  // Clear the bomb and reset bomb-related variables
+  displayBomb(bombRow, bombCol, false);
+
+  // Iterate through neighboring cells around the bomb
+  for (int row = bombRow - 1; row <= bombRow + 1; row++)
+  {
+    for (int col = bombCol - 1; col <= bombCol + 1; col++)
+    {
+      // Check if the neighboring cell is within the matrix boundaries
+      if (row >= 0 && row < matrixSize && col >= 0 && col < matrixSize)
+      {
+        // Clear the wall if present
+        if (wallMatrix[row][col])
+        {
+          displayWall(row, col, false);
+          wallMatrix[row][col] = false; // Update the wallMatrix to reflect the cleared wall
+          wallsCleared++;
+        }
+      }
+    }
+  }
+
+  bombPlaced = false;
+  bombRow = -1;
+  bombCol = -1;
+
+  // Handle any additional bomb explosion logic here
+  // For example, you can perform any other desired actions after the walls are cleared
+}
+
+void checkFinished()
+{
+  int ok=1;
+    for (int row = 0; row < matrixSize && ok==1; row++)
+  {
+    for (int col = 0; col < matrixSize && ok==1; col++)
+    {
+      if (wallMatrix[row][col] == true)
+      {
+        ok=0;
+      }
+    }
+  }
+  if(ok == 1)
+    gameFinished=1;
+}
+
+void endOfTheGame()
+  {
+    if(!showedEndMessage)
+    {clearMatrix();
+    if(!deathFromBomb)
+    {score = (wallsCleared*5) - (bombsPlaced * 3);
+    highScore = EEPROM.read(0);
+    if(score > highScore)
+    {
+      EEPROM.put(0,score);
+      Serial.print("\n YOU JUST BEAT THE HIGHSCORE. THE NEW HIGHSCORE IS ");
+      Serial.print(score);
+      Serial.print(" (last one: ");
+      Serial.print(highScore);
+      displayImage(crown);
+    }
+    else {
+    Serial.print("\n Your score: ");
+    Serial.print(score);
+    displayImage(end);
+    }
+    }
+    else {
+      Serial.print("\n You died :( !");
+      displayImage(dead);
+
+    }
+    showedEndMessage=!showedEndMessage;
+    }
+
+
+  }
+
+void displayImage(const uint64_t *imageData) {
+  for (int row = 0; row < matrixSize; row++) {
+    for (int col = 0; col < matrixSize; col++) {
+      bool pixelState = (imageData[0] >> (row * matrixSize + col)) & 0x01;
+      lc.setLed(0, row, col, pixelState);
+    }
+  }
+}
