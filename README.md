@@ -952,5 +952,39 @@ The goal of this project is to develop a "Smart Environment Monitor and Logger" 
 
 The code for this project can be found in the repository files.
 
+</details>
 
+<details>
+<summary>Homework 7 - Bomberman Game using 8x8 matrix</summary>
+
+## Requirements
+
+Develop a small game on an 8x8 LED matrix using Arduino Uno. The game should feature three types of elements: player (blinks slowly), bombs/bullets (blinks fast), and walls (doesn’t blink). The objective is to generate walls on the map (50% - 75% of the map) and navigate the player to destroy them. Control should be smooth and pleasant, implemented with a joystick.
+
+## Components Required
+
+- Arduino Uno Board
+- Joystick
+- 8x8 LED Matrix
+- MAX7219
+- Resistors and capacitors as needed
+- Breadboard and connecting wires
+- (Optional) Additional sensors/components for extended functionality
+
+## Games Used for Inspiration
+
+- [Bomberman Video](https://www.youtube.com/watch?v=2xErEj86Yd8)
+- [Bomberman Game (Simulated Nintendo Environment)](https://www.retrogames.cz/play_085-NES.php)
+- [Tanks on Terminator Platform](https://www.youtube.com/watch?v=4ZpXWn4qzzw)
+
+
+## Photo of the circuit
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/4c5b362d-900b-49f4-b133-cfb36fbedd79)
+
+
+
+## Link for video
+
+[Watch the video](https://youtu.be/vC5dWZAiYxU)
 
