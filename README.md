@@ -984,4 +984,37 @@ Develop a small game on an 8x8 LED matrix using Arduino Uno. The game should fea
 ## Link for video
 
 [Watch the video](https://youtu.be/vC5dWZAiYxU)
+</details>
 
+<details>
+<summary>Homework 8 - Mini 8x8 LED Matrix game + LCD Menu </summary>
+
+##  Requirements
+### 1. Introduction
+When powering up the project, a greeting message should be displayed for a few moments.
+
+### 2. Menu
+- (a) **Start Game:** Initiates the initial level.
+- (b) **Settings:**
+  - i. **LCD Brightness Control:** Adjust brightness and save value to EEPROM.
+  - ii. **Matrix Brightness Control:** Use the `setIntensity` function from the led-Control library. Save value to EEPROM and load it upon system start.
+- (c) **About:** Provides details about the creator(s) of the game, including game name, author, and GitHub link or username (use scrolling text?).
+
+### 3. End Message
+When the game ends, a message should be displayed. Wait for a prompt from the user (e.g., button push) before returning to the main menu.
+
+### 4. During Gameplay
+- (a) Display relevant dynamic details such as time, level, lives, etc. Implement the number of LEDs that are still switched on.
+- (b) Implement an end game/level functionality. The current game should end (e.g., when all LEDs are "destroyed"). Display the end message, wait for user prompt, and return to the main menu.
+
+
+## Photo of the circuit
+
+![image](https://github.com/Ciocanesku/IntroductionToRobotics/assets/103603726/d733dac5-86b7-4f83-a633-bcf25fa04494)
+
+
+
+
+## Link for video
+
+[Watch the video](https://youtu.be/8c1ZcnBLRAY)
